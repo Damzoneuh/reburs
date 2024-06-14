@@ -5,14 +5,17 @@
 
 {$SERVER_NAME}
 
-log
+log {
+    output file /var/log/caddy/access.log
+    format json
+}
 
-# Matches requests for HTML documents, for static files and for Next.js files,
-# except for known API paths and paths with extensions handled by API Platform
+
+# Matcher for PWA requests
 @pwa expression `(
         header({'Accept': '*text/html*'})
         && !path(
-            '/docs*', '/graphql*', '/bundles*', '/contexts*', '/_profiler*', '/_wdt*',
+            '/docs*', '/graphql*', '/bundles*', '/contexts*', '/_profiler*', '/_wdt*', '/api*',
             '*.json*', '*.html', '*.csv', '*.yml', '*.yaml', '*.xml'
         )
     )
@@ -20,6 +23,7 @@ log
 
 route {
     root * /srv/app/public
+
     mercure {
         # Transport to use (default to Bolt)
         transport_url {$MERCURE_TRANSPORT_URL:bolt:///data/mercure.db}
@@ -41,11 +45,15 @@ route {
     # Disable Topics tracking if not enabled explicitly: https://github.com/jkarlin/topics
     header ?Permissions-Policy "browsing-topics=()"
 
-    # Comment the following line if you don't want Next.js to catch requests for HTML documents.
-    # In this case, they will be handled by the PHP app.
+    # Route for PWA (Next.js) requests
     reverse_proxy @pwa http://{$PWA_UPSTREAM}
 
+    # Serve PHP files
     php_fastcgi unix//var/run/php/php-fpm.sock
+
+    # Encode responses
     encode zstd gzip
+
+    # Serve static files
     file_server
 }

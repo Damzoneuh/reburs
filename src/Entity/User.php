@@ -16,9 +16,9 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ApiResource(
     operations: [
         new GetCollection(
-            paginationEnabled: false,
             uriTemplate: '/test',
-            controller: TestController::class
+            controller: TestController::class,
+            paginationEnabled: false
         )
     ]
 )]

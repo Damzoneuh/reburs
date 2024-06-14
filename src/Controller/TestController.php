@@ -17,7 +17,7 @@ class TestController extends AbstractController
     public function __invoke(): bool
     {
         $update = new Update(
-            'http://localhost:3000',
+            'http://localhost/user',
             json_encode(['hello' => 'world'])
         );
 
